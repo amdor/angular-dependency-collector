@@ -1,0 +1,1 @@
+# angular-dependency-collector
