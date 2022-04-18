@@ -1,25 +1,11 @@
 import os
 import argparse
-import re
-
-def extract_result(search_result):
-    return None if not search_result else search_result[0]
-
-
-def search_for_regex(expression, text, start_pos=0, end_pos=-1):
-    if end_pos == -1:
-        end_pos = len(text)
-    search_result = re.compile(expression).search(text, start_pos, end_pos)
-    # fallback
-    if not search_result and start_pos > 0:
-        return search_for_regex(expression, text, 0, len(text) - 1)
-    return extract_result(search_result)
-
+from utils import search_for_regex, extract_result
 
 def gather_component_files(root):
     """
     Traverses through all subdirectories of root collecting *component.ts *container.ts filenames. Recursive.
-    :param root: the basepoint of search
+    :param root: the basepoint of search (directory)
     :rtype: set
     :return: all found filenames
     """
@@ -28,7 +14,7 @@ def gather_component_files(root):
         abs_path = os.path.join(root, child)
         if (os.path.isdir(abs_path) and ".git" not in abs_path and "node_modules" not in abs_path and "dir/" not in abs_path):
             component_files |= gather_component_files(abs_path)
-        elif search_for_regex("\.(container|component|directive)\.ts$", child):
+        elif extract_result(search_for_regex("\.(container|component|directive)\.ts$", child)):
             component_files.add(abs_path)
             print("Component found: " + child)
     return component_files

@@ -1,0 +1,12 @@
+{
+	"sk-notification": [
+		"sk-lobby",
+		"sk-elaborator-review",
+		"sk-elaborator-lobby"
+	],
+	"sk-contact-footer": ["sk-lobby", "sk-elaborator-review"],
+	"sk-elaborator-lobby": ["demo.component.ts"],
+	"sk-elaborator-question": ["sk-elaborator-review", "sk-elaborator-lobby"],
+	"sk-countdown-clock": ["sk-elaborator-question"],
+	"sk-app": ["index.html"]
+}
