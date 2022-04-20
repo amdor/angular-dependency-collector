@@ -1,6 +1,6 @@
 import os
 import argparse
-from utils import search_for_regex, extract_result
+from indexer import gather_files
 
 def gather_component_files(root):
     """
@@ -9,14 +9,7 @@ def gather_component_files(root):
     :rtype: set
     :return: all found filenames
     """
-    component_files = set()
-    for child in os.listdir(root):
-        abs_path = os.path.join(root, child)
-        if (os.path.isdir(abs_path) and ".git" not in abs_path and "node_modules" not in abs_path and "dir/" not in abs_path):
-            component_files |= gather_component_files(abs_path)
-        elif extract_result(search_for_regex("\.(container|component|directive)\.ts$", child)):
-            component_files.add(abs_path)
-            print("Component found: " + child)
+    component_files = gather_files(root, "\.(container|component|directive)\.ts$")
     return component_files
 
 

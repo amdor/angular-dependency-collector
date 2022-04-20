@@ -11,14 +11,16 @@ def main():
         selector = get_selector(component)
         if selector == None:
             continue
+        print("Selector found: " + selector)
+        print("Finding dependents")
         dependents = find_dependents(selector, path)
+        print("Dependents found: " + str(dependents))
         if len(dependents) > 0:
             dependencies[selector] = list(dependents)
-            
-    print(dependencies)
-    with open('dependencies.json', 'w') as depencencied_file:
-        json.dump(dependencies, depencencied_file)
 
+    print(dependencies)
+    with open('./dependency-app/src/assets/dependencies.json', 'w') as depencencied_file:
+        json.dump(dependencies, depencencied_file)
 
 
 if __name__ == "__main__":
