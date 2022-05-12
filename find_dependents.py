@@ -57,18 +57,20 @@ def find_dependents(selector, root):
 
 def get_selector_from_text(component_file_text):
     selector_search_result = search_for_regex(
-        """(?:@Component\s*\(\s*\{((\s|.)(?!selector))*\s*selector:\s*("|'))(?P<selector>.*)("|')""", component_file_text)
+        """(?:@Component\s*\(\s*\{(\s|\ss|.(?!s))*elector:\s*("|'))(?P<selector>(.(?!"|'))*.)""", component_file_text)
     if selector_search_result:
         try:
             return selector_search_result.group("selector")
         except:
             return None
 
+
 def get_selector(file_name):
-    with open(file_name, 'rt') as component_file:
+    print("Get selector for: " + file_name)
+    with open(file_name, mode='rt') as component_file:
         component_file_content = component_file.readlines()
         component_file_text = ''.join(component_file_content)
-        return get_selector_from_text(component_file_text)
+    return get_selector_from_text(component_file_text)
 
 
 def main():

@@ -1,17 +1,22 @@
 import { Component } from '@angular/core';
-import { findAllBases } from 'matroidjs';
-import { depMatroid } from './dependency-matroid';
+import { findBase } from 'matroidjs';
+import { depMatroids } from './dependency-matroid';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  title = 'dependency-app';
-  private matroid = depMatroid;
+    title = 'dependency-app';
+    private matroids = depMatroids;
 
-  constructor() {
-    console.log(findAllBases(this.matroid));
-  }
+    constructor() {
+        setTimeout(() => {
+            for (const matroid of this.matroids) {
+                const base = findBase(matroid);
+                console.log(base);
+            }
+        }, 2000);
+    }
 }

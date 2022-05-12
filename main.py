@@ -11,7 +11,7 @@ def main():
         selector = get_selector(component)
         if selector == None:
             continue
-        print("Selector found: " + selector)
+        print("Evaluating component: " + selector)
         print("Finding dependents")
         dependents = find_dependents(selector, path)
         print("Dependents found: " + str(dependents))
