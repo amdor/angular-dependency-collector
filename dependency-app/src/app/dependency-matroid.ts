@@ -8,8 +8,8 @@ interface Dependency {
 
 type Selector = string;
 type DependentsMap = Record<string, boolean>; // for quick searching
-type Dependents = string[]
-type DependencyMap = Record<Selector, Dependents>
+type Dependents = string[];
+type DependencyMap = Record<Selector, Dependents>;
 
 const dependencies: Dependency[] = Object.keys(rawDependencyData).map(
     (selector) => ({ selector, dependents: rawDependencyData[selector] })
@@ -18,10 +18,7 @@ const dependencies: Dependency[] = Object.keys(rawDependencyData).map(
 const getCycleFinder = (dependenciesToCheck: DependencyMap) => {
     const visitedDeps: DependentsMap = {};
     const recStack: DependentsMap = {};
-    const _findCycle = (
-        sink: string,
-        sources: string[],
-    ): boolean => {
+    const _findCycle = (sink: string, sources: string[]): boolean => {
         if (visitedDeps[sink]) {
             recStack[sink] = false;
             return false;
@@ -33,11 +30,9 @@ const getCycleFinder = (dependenciesToCheck: DependencyMap) => {
             // check subgraph if hasn't been checked already, and then check if the source has already been
             // visited during that particular recursion (recursionTracker)
             if (
-                (
-                    !visitedDeps[source] &&
+                (!visitedDeps[source] &&
                     sourcesOfSource?.length &&
-                    _findCycle(source, sourcesOfSource)
-                ) ||
+                    _findCycle(source, sourcesOfSource)) ||
                 recStack[source]
             ) {
                 return true;
@@ -57,7 +52,10 @@ export class DependencyMatroid extends Matroid<Dependency> {
         }, {} as DependencyMap);
         const cycleFinder = getCycleFinder(dependencyMap); // using shared visited and recTrack for all iterations
         for (const dependency of dependenciesToCheck) {
-            const hasCircuit = cycleFinder(dependency.selector, dependency.dependents);
+            const hasCircuit = cycleFinder(
+                dependency.selector,
+                dependency.dependents
+            );
             if (hasCircuit) {
                 return true;
             }
@@ -67,27 +65,40 @@ export class DependencyMatroid extends Matroid<Dependency> {
 }
 
 // consider the connected subgraph as matroid for each component
-export const depMatroids = dependencies.map(dep => {
-    const visitedDeps: DependentsMap = {};
-    const dependencySubGraph: Dependency[] = [];
-    const traverse = (
-        dependency: Dependency
-    ) => {
-        const { selector: sink, dependents: sources } = dependency;
-        if (visitedDeps[sink]) {
-            return;
-        }
-        visitedDeps[sink] = true;
-        dependencySubGraph.push(dep);
-        for (const source of sources) {
-            const dependencyForSource = dependencies.find(d => d.selector === source);
-            if (!dependencyForSource) {
-                return;
+export const depMatroids = ((): DependencyMatroid[] => {
+    const depsPartOfASubGraphAlready: Record<string, boolean> = {};
+    return dependencies
+        .map((dep) => {
+            if (depsPartOfASubGraphAlready[dep.selector]) {
+                return undefined;
             }
-            traverse(dependencyForSource);
-        }
-        return;
-    };
-    traverse(dep);
-    return new DependencyMatroid(dependencySubGraph);
-});
+            depsPartOfASubGraphAlready[dep.selector] = true;
+            const visitedDeps: DependentsMap = {};
+            const dependencySubGraph: Dependency[] = [];
+            const traverse = (dependency: Dependency) => {
+                const { selector: sink, dependents: sources } = dependency;
+                if (visitedDeps[sink]) {
+                    return;
+                }
+                visitedDeps[sink] = true;
+                dependencySubGraph.push(dependency);
+                depsPartOfASubGraphAlready[sink] = true;
+                // going through all the dependents, and dependencies
+                const dependentsAndDeendencies = dependencies.filter(
+                    (d) =>
+                        sources.includes(d.selector) ||
+                        d.dependents.includes(sink)
+                );
+                for (const adjacent of dependentsAndDeendencies) {
+                    traverse(adjacent);
+                }
+                return;
+            };
+            traverse(dep);
+            return new DependencyMatroid(dependencySubGraph);
+        })
+        .filter(Boolean)
+        .sort(
+            (a, b) => (b?.ground.length ?? 0) - (a?.ground.length ?? 0)
+        ) as DependencyMatroid[];
+})();
