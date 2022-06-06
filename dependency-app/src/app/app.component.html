@@ -1,7 +1,18 @@
 <div class="app">
-    <button (click)="onClick()">Next graph</button>
-    <div
-        id="canvas"
-        #canvas
-    ></div>
+    <div class="app-input-group">
+        <input
+            type="text"
+            list="nodes"
+            [(ngModel)]="searchText"
+            (change)="search(searchText)"
+            (blur)="searchTextBlur()"
+        />
+        <datalist id="nodes">
+            <option *ngFor="let n of nodeLabelList" [value]="n">{{ n }}</option>
+        </datalist>
+        <button (click)="nextGraph()">Next graph</button>
+        <button (click)="loadManual()">Load manual clique selection</button>
+        <button (click)="loadAutomatic()">Load automatic lazy trees</button>
+    </div>
+    <div id="canvas" #canvas></div>
 </div>
