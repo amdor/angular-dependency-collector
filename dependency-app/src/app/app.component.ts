@@ -3,8 +3,8 @@ import { Dependency, DependencyMatroid, depMatroids } from './dependency-matroid
 import DirectedGraph from 'graphology';
 import Sigma from 'sigma';
 import { SearchService } from './search.service';
-import { findBase } from 'matroidjs';
-import { bfs, getDependentMap, rank, rank as rankFn } from './graph-functions';
+import { bfs, getDependentMap, rank as rankFn } from './graph-functions';
+import { allRemove, allRootProvide } from './manual-search-results';
 
 const TREE_LEVEL_DISTANCE = 100;
 const ADJACENT_NODE_DISTANCE = 50;
@@ -26,6 +26,7 @@ export class AppComponent {
     context: CanvasRenderingContext2D | undefined | null;
     searchText = '';
     nodeLabelList: string[] = [];
+    isModeChosen = false;
 
     private matroids = depMatroids;
     private currentGraphIndex = 0;
@@ -54,10 +55,12 @@ export class AppComponent {
     loadManual() {
         this.recordPosition = true;
         this.graphDeps = this.getGraphDepsManualExploration();
+        this.isModeChosen= true;
     }
 
     loadAutomatic() {
         this.graphDeps = this.getGraphDepsAutoLazyTreeFinder();
+        this.isModeChosen = true;
     }
 
     nextGraph() {
@@ -271,42 +274,12 @@ export class AppComponent {
         return [...graphDepsOfSourcesRet];
     }
 
-    bigSinksToRootProvide = [
-        'obg-tab-label',
-        'obg-message',
-        'obg-event-score',
-        'obg-score-disclaimer',
-        'obg-nav-bar-scroll',
-        'obg-draggable-scroll',
-        'obg-tabs',
-    ];
-    bigAlmostSinksToRootProvie = [];
-    tabAndScrollerSinkCliqueRootProvide = [];
-
-    rootProvideForSearchClique = ['obg-m-sportsbook-search-result-event'];
-    searchCliqueToLazyLoad = [];
-
-    settingsCliqueToLazyLoad = [];
-
-    dialogsToLazyLoad = [];
-
-    allRemove: string[] = [
-        ...this.bigSinksToRootProvide,
-        ...this.bigAlmostSinksToRootProvie,
-        ...this.tabAndScrollerSinkCliqueRootProvide,
-        ...this.rootProvideForSearchClique,
-    ];
-
+    
     private getGraphDepsManualExploration() {
         this.dependentMap = getDependentMap(this.currentMatroid.ground);
         this.dependenciesOfBigConnectors = [];
         this.currentGraphIndex = 0;
-        for (let d of [
-            ...this.bigSinksToRootProvide,
-            ...this.bigAlmostSinksToRootProvie,
-            ...this.tabAndScrollerSinkCliqueRootProvide,
-            ...this.rootProvideForSearchClique,
-        ]) {
+        for (let d of allRootProvide) {
             const dependencies = this.currentMatroid.ground.filter((d2) =>
                 this.dependentMap?.[d2.selector]?.includes(d)
             );
@@ -329,7 +302,7 @@ export class AppComponent {
         treendex: number,
         options: { size?: number; isSink?: boolean; isSource?: boolean }
     ) {
-        if (this.allRemove.includes(node) && this.recordPosition) {
+        if (allRemove.includes(node) && this.recordPosition) {
             return;
         }
 

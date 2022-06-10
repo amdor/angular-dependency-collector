@@ -10,7 +10,7 @@
         <datalist id="nodes">
             <option *ngFor="let n of nodeLabelList" [value]="n">{{ n }}</option>
         </datalist>
-        <button (click)="nextGraph()">Next graph</button>
+        <button *ngIf="isModeChosen" (click)="nextGraph()">Next graph</button>
         <button (click)="loadManual()">Load manual clique selection</button>
         <button (click)="loadAutomatic()">Load automatic lazy trees</button>
     </div>
