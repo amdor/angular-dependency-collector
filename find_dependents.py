@@ -27,6 +27,7 @@ def find_component_for_template(template_file_path):
         if template_file_name in component_text:
             print("Get selector from text in file: " + template_file_name)
             return get_selector_from_text(component_text)
+    print("Selector not found for ", template_file_name)
     return None
 
 
@@ -56,13 +57,14 @@ def find_dependents(selector, root):
 
 
 def get_selector_from_text(component_file_text):
-    selector_search_result = search_for_regex(
-        """(?:@Component\s*\(\s*\{(\s|\ss|.(?!s))*elector:\s*("|'))(?P<selector>(.(?!"|'))*.)""", component_file_text)
-    if selector_search_result:
-        try:
+    try:
+        selector_search_result = search_for_regex(
+            """(?:(@Component|@Directive)\s*\(\s*\{[\s|\S]*selector:\s*(\"|\'))(?P<selector>(.)*)(\"|\')""", component_file_text)
+        if selector_search_result:
             return selector_search_result.group("selector")
-        except:
-            return None
+    except:
+        return None
+    return None
 
 
 def get_selector(file_name):

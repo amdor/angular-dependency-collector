@@ -10,6 +10,7 @@ def main():
     for component in components:
         selector = get_selector(component)
         if selector == None:
+            print("Selector not found for ", component)
             continue
         print("Evaluating component: " + selector)
         print("Finding dependents")
