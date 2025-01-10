@@ -14,6 +14,7 @@ const ADJACENT_NODE_DISTANCE = 50;
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss'],
     providers: [SearchService],
+    standalone: false
 })
 export class AppComponent {
     @ViewChild('canvas', { static: false })
