@@ -74,32 +74,32 @@ export class AppComponent {
 
         // NODES
         let treendex = 0;
-        let size = rankFn(currentGraphDeps[0].selector, currentGraphDeps);
+        let nodeRank = rankFn(currentGraphDeps[0].selector, currentGraphDeps);
         for (let { selector, dependents } of currentGraphDeps) {
             if (this.addedNodes[selector]) {
                 continue;
             }
 
-            const nextSize = rankFn(selector, currentGraphDeps);
+            const nextNodeRanks = rankFn(selector, currentGraphDeps);
             if (!dependents.length && !this.recordPosition) {
-                size = 500;
+                nodeRank = 500;
                 this.addNodeTree(selector, 0, {
-                    size: nextSize,
+                    size: Math.min(nextNodeRanks, 15),
                     isSink: !!dependents.length,
-                    isSource: nextSize - dependents.length > 0,
+                    isSource: nextNodeRanks - dependents.length > 0,
                 });
                 continue;
             }
 
-            if (size - nextSize >= 1) {
+            if (nodeRank - nextNodeRanks >= 1) {
                 treendex++;
-                size = nextSize;
+                nodeRank = nextNodeRanks;
             }
 
             this.addNodeTree(selector, treendex, {
-                size: nextSize,
+                size: Math.min(nextNodeRanks, 15),
                 isSink: !!dependents.length,
-                isSource: nextSize - dependents.length > 0,
+                isSource: nextNodeRanks - dependents.length > 0,
             });
         }
 
@@ -114,6 +114,7 @@ export class AppComponent {
         this.searchService.setGraph(this.graph);
         this.searchService.setRenderer(this.renderer);
         this.searchService.setupHover();
+        this.searchService.setClickHighlight();
 
         this.currentGraphIndex++;
         this.nodeLabelList = this.searchService.getLabelList();

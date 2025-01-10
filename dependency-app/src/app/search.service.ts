@@ -5,15 +5,15 @@ import { Coordinates, EdgeDisplayData, NodeDisplayData } from 'sigma/types';
 
 // Type and declare internal this.state:
 interface State {
-    hoveredNode?: string;
+    highlightedRootNode?: string;
     searchQuery: string;
 
     // this.state derived from query:
     selectedNode?: string;
     suggestions?: Set<string>;
 
-    // this.state derived from hovered node:
-    hoveredNeighbors?: Set<string>;
+    // this.state derived from hovered/clicked node:
+    highlightedNeighbours?: Set<string>;
 }
 
 @Injectable()
@@ -22,12 +22,62 @@ export class SearchService {
     graph: Graph | undefined;
     renderer: Sigma | undefined;
 
+    private hoverDisabled = false;
+
     setGraph(graph: Graph) {
         this.graph = graph;
     }
 
     setRenderer(renderer: Sigma) {
         this.renderer = renderer;
+        // Render nodes accordingly to the internal this.state:
+        // 1. If a node is selected, it is highlighted
+        // 2. If there is query, all non-matching nodes are greyed
+        // 3. If there is a hovered node, all non-neighbor nodes are greyed
+        this.renderer!.setSetting('nodeReducer', (node, data) => {
+            const res: Partial<NodeDisplayData> = { ...data };
+
+            if (
+                this.state.highlightedNeighbours &&
+                !this.state.highlightedNeighbours.has(node) &&
+                this.state.highlightedRootNode !== node
+            ) {
+                res.label = '';
+                res.color = '#f6f6f6';
+            }
+
+            if (this.state.selectedNode === node) {
+                res.highlighted = true;
+            } else if (this.state.suggestions && !this.state.suggestions.has(node)) {
+                res.label = '';
+                res.color = '#f6f6f6';
+            }
+
+            return res;
+        });
+
+        // Render edges accordingly to the internal this.state:
+        // 1. If a node is hovered, the edge is hidden if it is not connected to the
+        //    node
+        // 2. If there is a query, the edge is only visible if it connects two
+        //    suggestions
+        this.renderer!.setSetting('edgeReducer', (edge, data) => {
+            const res: Partial<EdgeDisplayData> = { ...data };
+
+            if (this.state.highlightedRootNode && !this.graph!.hasExtremity(edge, this.state.highlightedRootNode)) {
+                res.hidden = true;
+            }
+
+            if (
+                this.state.suggestions &&
+                (!this.state.suggestions.has(this.graph!.source(edge)) ||
+                    !this.state.suggestions.has(this.graph!.target(edge)))
+            ) {
+                res.hidden = true;
+            }
+
+            return res;
+        });
     }
 
     getLabelList(): string[] {
@@ -73,13 +123,13 @@ export class SearchService {
         this.renderer!.refresh();
     }
 
-    setHoveredNode(node: string | undefined) {
+    setHighlightedRootNode(node: string | undefined) {
         if (node) {
-            this.state.hoveredNode = node;
-            this.state.hoveredNeighbors = new Set(this.graph!.neighbors(node));
+            this.state.highlightedRootNode = node;
+            this.state.highlightedNeighbours = new Set(this.graph!.neighbors(node));
         } else {
-            this.state.hoveredNode = undefined;
-            this.state.hoveredNeighbors = undefined;
+            this.state.highlightedRootNode = undefined;
+            this.state.highlightedNeighbours = undefined;
         }
 
         // Refresh rendering:
@@ -88,59 +138,23 @@ export class SearchService {
 
     setupHover() {
         this.renderer!.on('enterNode', ({ node }) => {
-            this.setHoveredNode(node);
+            if (this.hoverDisabled) return;
+            this.setHighlightedRootNode(node);
         });
         this.renderer!.on('leaveNode', () => {
-            this.setHoveredNode(undefined);
+            if (this.hoverDisabled) return;
+            this.setHighlightedRootNode(undefined);
         });
+    }
 
-        // Render nodes accordingly to the internal this.state:
-        // 1. If a node is selected, it is highlighted
-        // 2. If there is query, all non-matching nodes are greyed
-        // 3. If there is a hovered node, all non-neighbor nodes are greyed
-        this.renderer!.setSetting('nodeReducer', (node, data) => {
-            const res: Partial<NodeDisplayData> = { ...data };
-
-            if (
-                this.state.hoveredNeighbors &&
-                !this.state.hoveredNeighbors.has(node) &&
-                this.state.hoveredNode !== node
-            ) {
-                res.label = '';
-                res.color = '#f6f6f6';
-            }
-
-            if (this.state.selectedNode === node) {
-                res.highlighted = true;
-            } else if (this.state.suggestions && !this.state.suggestions.has(node)) {
-                res.label = '';
-                res.color = '#f6f6f6';
-            }
-
-            return res;
+    setClickHighlight() {
+        this.renderer!.on('rightClickNode', ({ node }) => {
+            this.hoverDisabled = true;
+            this.setHighlightedRootNode(node);
         });
-
-        // Render edges accordingly to the internal this.state:
-        // 1. If a node is hovered, the edge is hidden if it is not connected to the
-        //    node
-        // 2. If there is a query, the edge is only visible if it connects two
-        //    suggestions
-        this.renderer!.setSetting('edgeReducer', (edge, data) => {
-            const res: Partial<EdgeDisplayData> = { ...data };
-
-            if (this.state.hoveredNode && !this.graph!.hasExtremity(edge, this.state.hoveredNode)) {
-                res.hidden = true;
-            }
-
-            if (
-                this.state.suggestions &&
-                (!this.state.suggestions.has(this.graph!.source(edge)) ||
-                    !this.state.suggestions.has(this.graph!.target(edge)))
-            ) {
-                res.hidden = true;
-            }
-
-            return res;
+        this.renderer!.on('doubleClickStage', () => {
+            this.hoverDisabled = false;
+            this.setHighlightedRootNode(undefined);
         });
     }
 
