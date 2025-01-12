@@ -23,7 +23,6 @@ In the app there are 2 options to choose from:
     - the console shows a list of the cliques and the deleted connectors 
 
 2. Load manual clique selection
-    - need to click Next graph to show the graph
     - in this mode the whole graph is presented, except nodes in `allRemove`, more on that later
     - you can rearrange the nodes, positions are saved into localstorage
     - by double-clicking you can delete a node with all its edges, deleted nodes are recorded in an array, logged to the consolle at every deletion. deletion is not permanent, when you refresh the page, deleted nodes reappear.

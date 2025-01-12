@@ -1,5 +1,5 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { Dependency, DependencyMatroid, depMatroids } from './dependency-matroid';
+import { allDependencies, Dependency, DependencyMatroid, depMatroids } from './dependency-matroid';
 import DirectedGraph from 'graphology';
 import Sigma from 'sigma';
 import { SearchService } from './search.service';
@@ -14,7 +14,7 @@ const ADJACENT_NODE_DISTANCE = 50;
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss'],
     providers: [SearchService],
-    standalone: false
+    standalone: false,
 })
 export class AppComponent {
     @ViewChild('canvas', { static: false })
@@ -56,12 +56,14 @@ export class AppComponent {
     loadManual() {
         this.recordPosition = true;
         this.graphDeps = this.getGraphDepsManualExploration();
-        this.isModeChosen= true;
+        this.isModeChosen = true;
+        this.nextGraph();
     }
 
     loadAutomatic() {
         this.graphDeps = this.getGraphDepsAutoLazyTreeFinder();
         this.isModeChosen = true;
+        this.nextGraph();
     }
 
     nextGraph() {
@@ -84,7 +86,7 @@ export class AppComponent {
             if (!dependents.length && !this.recordPosition) {
                 nodeRank = 500;
                 this.addNodeTree(selector, 0, {
-                    size: Math.min(nextNodeRanks, 15),
+                    size: Math.max(3, Math.min(nextNodeRanks, 15)),
                     isSink: !!dependents.length,
                     isSource: nextNodeRanks - dependents.length > 0,
                 });
@@ -97,7 +99,7 @@ export class AppComponent {
             }
 
             this.addNodeTree(selector, treendex, {
-                size: Math.min(nextNodeRanks, 15),
+                size: Math.max(3, Math.min(nextNodeRanks, 15)), // shouldn't be too big or waaay to small
                 isSink: !!dependents.length,
                 isSource: nextNodeRanks - dependents.length > 0,
             });
@@ -276,15 +278,23 @@ export class AppComponent {
         return [...graphDepsOfSourcesRet];
     }
 
-    
     private getGraphDepsManualExploration() {
-        this.dependentMap = getDependentMap(this.currentMatroid.ground);
+        // filter out removed nodes completely, new matroid needed without those nodes
+        const filteredAllDependencies: Dependency[] = [];
+        for (let dep of allDependencies) {
+            if (allRemove.includes(dep.selector)) {
+                continue;
+            }
+            const filteredDependents = dep.dependents.filter((d) => !allRemove.includes(d));
+            filteredAllDependencies.push({ selector: dep.selector, dependents: filteredDependents });
+        }
+        const matroid = new DependencyMatroid(filteredAllDependencies);
+
+        this.dependentMap = getDependentMap(matroid.ground);
         this.dependenciesOfBigConnectors = [];
         this.currentGraphIndex = 0;
         for (let d of allRootProvide) {
-            const dependencies = this.currentMatroid.ground.filter((d2) =>
-                this.dependentMap?.[d2.selector]?.includes(d)
-            );
+            const dependencies = matroid.ground.filter((d2) => this.dependentMap?.[d2.selector]?.includes(d));
             for (let dependency of dependencies) {
                 if (!this.dependenciesOfBigConnectors.includes(dependency.selector)) {
                     this.dependenciesOfBigConnectors.push(dependency.selector);
@@ -292,10 +302,7 @@ export class AppComponent {
             }
         }
         return [
-            this.currentMatroid.ground.sort(
-                (d1, d2) =>
-                    rankFn(d2.selector, this.currentMatroid.ground) - rankFn(d1.selector, this.currentMatroid.ground)
-            ),
+            matroid.ground.sort((d1, d2) => rankFn(d2.selector, matroid.ground) - rankFn(d1.selector, matroid.ground)),
         ];
     }
 
@@ -304,10 +311,6 @@ export class AppComponent {
         treendex: number,
         options: { size?: number; isSink?: boolean; isSource?: boolean }
     ) {
-        if (allRemove.includes(node) && this.recordPosition) {
-            return;
-        }
-
         this.addedNodes[node] = true;
 
         const { size, isSink, isSource } = options;

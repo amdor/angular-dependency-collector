@@ -61,18 +61,23 @@ export class DependencyMatroid extends Matroid<Dependency> {
 }
 
 const allComponents: Record<string, boolean> = {};
-const allDependencies: Dependency[] = [];
+export const allDependencies: Dependency[] = [];
 for (let dep of dependencies) {
     if (!allComponents[dep.selector]) {
         allComponents[dep.selector] = true;
-        allDependencies.push(dep);
+        // self reference doesn't count as dependency
+        allDependencies.push({ ...dep, dependents: dep.dependents.filter((d) => d !== dep.selector) });
     }
     for (let dependent of dep.dependents) {
         if (allComponents[dependent]) {
             continue;
         }
         allComponents[dependent] = true;
-        allDependencies.push({ selector: dependent, dependents: rawDependencyData[dependent] ?? [] });
+        allDependencies.push({
+            selector: dependent,
+            // self reference doesn't count as dependency
+            dependents: rawDependencyData[dependent]?.filter((d: string) => d !== dependent) ?? [],
+        });
     }
 }
 export const depMatroids = [new DependencyMatroid(allDependencies)];
