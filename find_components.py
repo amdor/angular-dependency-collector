@@ -9,7 +9,9 @@ def gather_component_files(root):
     :rtype: set
     :return: all found filenames
     """
-    component_files = gather_files(root, "\.(container|component|directive)\.ts$")
+
+    component_files = gather_files(root, r"\.(container|component|directive)\.ts$")
+
     return component_files
 
 

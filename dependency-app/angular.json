@@ -32,7 +32,8 @@
                         "assets": ["src/favicon.ico", "src/assets"],
                         "styles": ["src/styles.scss"],
                         "scripts": [],
-                        "browser": "src/main.ts"
+                        "browser": "src/main.ts",
+                        "allowedCommonJsDependencies": ["graphology", "sigma"]
                     },
                     "configurations": {
                         "production": {
@@ -101,5 +102,8 @@
                 }
             }
         }
+    },
+    "cli": {
+      "analytics": false
     }
 }

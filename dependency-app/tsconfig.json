@@ -12,9 +12,10 @@
     "sourceMap": true,
     "declaration": false,
     "experimentalDecorators": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "importHelpers": true,
     "target": "ES2022",
+    "noImplicitAny": false,
     "module": "es2020",
     "lib": [
       "es2018",

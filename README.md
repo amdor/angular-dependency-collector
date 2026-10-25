@@ -4,13 +4,17 @@
 Finds all containers/directives/components in the given repository
 ```
 python .\find_components.py path/to/angular/app/repo
+py .\find_components.py C:/demoapps/star/angular-dependency-collector/dependency-app/src
+
 ```
 
 ## main.py
 Uses find-components.py and map component dependencies into a `dependencies.json` file to the dependency-app project's assets (dependency-app/src/assets)
 
 ```
-python .\main.py path/to/angular/app/repo
+py .\main.py path/to/angular/app/repo
+py .\main.py C:/demoapps/star/angular-dependency-collector/dependency-app/src/app
+
 ```
 
 ## Dependency app

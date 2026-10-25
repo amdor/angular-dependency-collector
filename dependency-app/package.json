@@ -19,6 +19,7 @@
     "@angular/platform-browser-dynamic": "^19.0.6",
     "@angular/router": "^19.0.6",
     "graphology": "^0.24.1",
+    "graphology-types": "0.24.8",
     "matroidjs": "^1.0.0",
     "rxjs": "~6.6.0",
     "sigma": "^2.3.1",
@@ -36,6 +37,7 @@
     "karma-chrome-launcher": "~3.1.0",
     "karma-coverage": "~2.0.3",
     "karma-jasmine": "~4.0.0",
-    "karma-jasmine-html-reporter": "~1.7.0"
+    "karma-jasmine-html-reporter": "~1.7.0",
+    "typescript": "~5.5.0"
   }
 }
