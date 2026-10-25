@@ -246,7 +246,7 @@ export class AppComponent {
 
         const all = [...sources, ...smolConnectors, ...smolSinks];
         const nodesAdded: any = {};
-        const graphDepsOfSourcesRet = [];
+        const graphDepsOfSourcesRet: Dependency[][] = [];
 
         // build trees starting from sources with BFS (regarding graph as undirected)
         for (let root of sources) {
@@ -256,7 +256,7 @@ export class AppComponent {
                 }
                 nodesAdded[root.selector] = true;
                 const treeNodes = bfs(root, all);
-                const graphDeps = [];
+                const graphDeps: Dependency[] = [];
                 for (let treeNode of treeNodes) {
                     // exclude trees with nodes in dependenciesOfBigConnectors
                     if (this.dependenciesOfBigConnectors.includes(treeNode.selector)) {
